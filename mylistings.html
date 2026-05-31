@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<!-- My Listings page-->
+<!-- My Listings page -->
 
 <html>
     <head>
@@ -10,10 +10,22 @@
 
     <body>
         <div class="container">
-            <h1>My Listings</h1>
-            
-            <!-- TO DO -->
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h1>My Listings</h1>
+                <div>
+                    <span id="userEmail"></span>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="document.location='index.html'">Back to Welcome</button>
+                    <button class="btn btn-outline-danger btn-sm" id="signOutButton">Sign Out</button>
+                </div>
+            </div>
 
+            <p>Items you've listed for sale or trade.</p>
+
+            <div id="myListingsList">
+                <p>Loading your listings...</p>
+            </div>
         </div>
+
+        <script type="module" src="app.js"></script>
     </body>
 </html>

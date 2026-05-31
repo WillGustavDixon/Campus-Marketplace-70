@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 
-<!-- Shortlist page-->
+<!-- Shortlist page -->
 
 <html>
     <head>
@@ -10,10 +10,22 @@
 
     <body>
         <div class="container">
-            <h1>Shortlist</h1>
-            
-            <!-- TO DO -->
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h1>My Shortlist</h1>
+                <div>
+                    <span id="userEmail"></span>
+                    <button class="btn btn-outline-secondary btn-sm" onclick="document.location='index.html'">Back to Welcome</button>
+                    <button class="btn btn-outline-danger btn-sm" id="signOutButton">Sign Out</button>
+                </div>
+            </div>
 
+            <p>Items you've saved to look at later.</p>
+
+            <div id="shortlistList">
+                <p>Loading your shortlist...</p>
+            </div>
         </div>
+
+        <script type="module" src="app.js"></script>
     </body>
 </html>
