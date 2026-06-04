@@ -86,70 +86,69 @@ if (itemList) {
 */
 
 async function loadItems(user) {
+    const myMarketplaceQuery = query( 
+    collection(db, "marketplaceItems"),
+    where("sellerId", "!=", user.uid)  // firestore query to grab marketplace items (excl. owned by user)
+    );
+    const itemsSnapshot = await getDocs(myMarketplaceQuery);
+    // gather existing user shortlist
+const shortListQuery = query(
+    collection(db, "shortList"),
+    where("userId", "==", user.uid)
+);
 
-    const itemsSnapshot = await getDocs(collection(db, "marketplaceItems"));
+const shortListSnapshot = await getDocs(shortListQuery); // build a list of IDs to check shortListed 
+const shortlistIds = [];
+shortListSnapshot.forEach(function (docSnapshot) {
+    shortlistIds.push(docSnapshot.data().itemId);
+});
 
     itemList.innerHTML = "";
-
+    if (itemsSnapshot.empty) {
+        itemList.innerHTML = "<p>No items available to trade or sale. Sorry!</p>";
+        return;
+    }
     itemsSnapshot.forEach(function (docSnapshot) {
         const item = docSnapshot.data();
         const itemId = docSnapshot.id;
         const itemImg = docSnapshot.data().imageUrl;
-        const shortlisted = 0; // shortlistIds.includes(itemId);
+        const shortlisted = shortlistIds.includes(itemId);
 
-        // turn the Firestore timestamp into a readable date
+        //formatting Fiestore date for Frontend
         const itemDate = item.createdTime.toDate().toLocaleDateString("en-AU", {
             weekday: "long", year: "numeric", month: "long", day: "numeric"
         });
 
-        // build a card for this item
+        // build card for marketplace item
         const card = document.createElement("div");
         card.classList.add("card", "mb-3");
         card.innerHTML = `
-
             <div class="row g-0">
-
                 <div class="col-md-4">
-
                     <img src="${itemImg}"
                         onerror="this.onerror=null; this.src='images/blank.jpg';" 
                         class="img-fluid rounded-start" 
                         alt="${item.name}">
-
                 </div>
-
                 <div class="col-md-8">
-
                     <div class="card-body">
-
                         <h5 class="card-title">${item.name}</h5>
-
                         <p class="card-text">$${item.price.toFixed(2)}</p>
                         <p class="card-text">${item.category}</p>
                         <p class="card-text">${item.description}</p>
-
                         <p class="card-text"><small>Listed ${itemDate}</small></p>
                         <p class="card-text"><small>Seller: ${item.sellerEmail}</small></p>
-
-                        <button class="btn ${shortlisted ? 'btn-success' : 'btn-primary'} shortlist-btn" data-item-id="${itemId}" data-item-name="${item.name}" ${shortlisted ? 'disabled' : ''}>${shortlisted ? "Shortlisted" : "Shortlist"}</button>
+                        <button class="btn ${shortlisted ? 'btn-success' : 'btn-primary'} shortlist-btn" data-item-id="${itemId}" data-item-name="${item.name}" ${shortlisted ? 'disabled' : ''}>${shortlisted ? "Shortlisted" : "Shortlist"}</button> 
                     </div>
-
                 </div>
-
             </div>
-
         `;
-
         itemList.appendChild(card);
     });
 
-    // make shortlist buttons work
-
-    //const shortlistbtns = document.querySelectorAll(".shortlist-btn");
-    
-    /*
+    //shortlist button functionality
+    const shortlistbtns = document.querySelectorAll(".shortlist-btn");
     shortlistbtns.forEach(function (button) {                                       
-
         button.addEventListener("click", async function () {                        
             const itemId = button.getAttribute("data-item-id");
             const itemName = button.getAttribute("data-item-name");
@@ -157,10 +156,9 @@ async function loadItems(user) {
                 await addDoc(collection(db, "shortlist"), {
                     userId: user.uid,
                     itemId: itemId,
-                    addedAt: addedAt
-                    // itemName: itemName 
+                    itemName: itemName
                 });
-                button.textContent = "Shortlisted";
+                button.textContent = "Shortlisted"; //change button to pressed variant
                 button.classList.remove("btn-primary");
                 button.classList.add("btn-success");
                 button.disabled = true;
@@ -170,8 +168,9 @@ async function loadItems(user) {
             }
         });
     });
-    */
 }
+
+
 // ============================
 // My Listings page - logic for mylistings.html
 // ============================
