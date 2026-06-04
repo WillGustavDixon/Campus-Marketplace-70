@@ -24,17 +24,24 @@ const signInButton = document.getElementById("signInButton");
 const signOutButton = document.getElementById("signOutButton");
 const messageArea = document.getElementById("messageArea");
 const userEmail = document.getElementById("userEmail");
+var loggingIn = false; // set while fetching login validity from firebase.
 
 const itemList = document.getElementById("itemList");
 const myListingsList = document.getElementById("myListingsList");
 const shortlistList = document.getElementById("shortlistList");
 
 // login page logic
-if (signInButton) {
-    signInButton.addEventListener("click", validateLogin);
-    emailInput.addEventListener("keydown", onEnter);
-    passwordInput.addEventListener("keydown", onEnter);
-} 
+if (signInButton) 
+    onAuthStateChanged(auth, function(user) { 
+        if(user && !loggingIn) {  // if a user is logged in already, redirect to index.html
+            window.location.href = "index.html";
+        } 
+        else { // otherwise add event listeners to detect login submissions.
+            signInButton.addEventListener("click", validateLogin);
+            emailInput.addEventListener("keydown", onEnter);
+            passwordInput.addEventListener("keydown", onEnter);
+        }
+    }); 
 else {
     onAuthStateChanged(auth, function (user) {
         if (user) {
@@ -59,6 +66,7 @@ else {
 
 function onEnter() { if (event.key === "Enter") { validateLogin(); }}
 async function validateLogin() {
+    loggingIn = true;
     const email = emailInput.value;
     const password = passwordInput.value;
     messageArea.innerHTML = "&nbsp;..."; messageArea.style.color = "black";
@@ -69,9 +77,8 @@ async function validateLogin() {
         messageArea.innerHTML = "&nbsp;Welcome, " + user.email + "! Redirecting...";
         messageArea.style.color = "green";
 
-        setTimeout(function () {
-            window.location.href = "index.html";
-        }, 1000);
+        setTimeout(function () { window.location.href = "index.html"; }, 1000);
+        loggingIn = false;
     } catch (error) {
         messageArea.innerHTML =  "&nbsp;Sign in failed. Please check your email and password.";
         messageArea.style.color = "red";
