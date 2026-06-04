@@ -95,7 +95,17 @@
         cursor: pointer;
         transition: all 0.2s;
     }
-    .btnSignout:hover {
+    .btnSignin {
+        background: var(--background);
+        border: 2px solid var(--mqGrey);
+        color: var(--mqBlack);
+        font-weight: bold;
+        padding: 0.35rem 0.9rem;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btnSignout:hover, .btnSignin:hover {
         background: var(--mqGrey);
         border-color: var(--greyer);
     }
@@ -185,8 +195,8 @@
         font-size: 1.5rem;
         font-weight: 700;
         color: var(--mqBlack);
-        min-height: var(--cardTitleHeight);
-        max-height: var(--cardTitleHeight);
+        height: var(--cardTitleHeight);
+        width: calc(var(--cardWidth)*0.9);
         overflow-y: scroll;
     }
     .cardPrice {

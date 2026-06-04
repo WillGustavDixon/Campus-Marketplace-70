@@ -31,30 +31,11 @@ const shortlistList = document.getElementById("shortlistList");
 
 // login page logic
 if (signInButton) {
-    const email = document.getElementById("emailInput");
-    const passwordInput = document.getElementById("passwordInput");
-    const messageArea = document.getElementById("messageArea");
-
-    signInButton.addEventListener("click", async function () {
-        const email = emailInput.value;
-        const password = passwordInput.value;
- 
-        try {
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            const user = userCredential.user;
-
-            messageArea.innerHTML = "&nbsp;Welcome, " + user.email + "! Redirecting...";
-            messageArea.style.color = "green";
-
-            setTimeout(function () {
-                window.location.href = "index.html";
-            }, 1000);
-        } catch (error) {
-            messageArea.innerHTML =  "&nbsp;Sign in failed. Please check your email and password.";
-            messageArea.style.color = "red";
-        }
-    });
-} else {
+    signInButton.addEventListener("click", validateLogin);
+    emailInput.addEventListener("keydown", onEnter);
+    passwordInput.addEventListener("keydown", onEnter);
+} 
+else {
     onAuthStateChanged(auth, function (user) {
         if (user) {
             userEmail.textContent = user.email;
@@ -76,6 +57,27 @@ if (signInButton) {
     });
 }
 
+function onEnter() { if (event.key === "Enter") { validateLogin(); }}
+async function validateLogin() {
+    const email = emailInput.value;
+    const password = passwordInput.value;
+    messageArea.innerHTML = "&nbsp;..."; messageArea.style.color = "black";
+    try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+
+        messageArea.innerHTML = "&nbsp;Welcome, " + user.email + "! Redirecting...";
+        messageArea.style.color = "green";
+
+        setTimeout(function () {
+            window.location.href = "index.html";
+        }, 1000);
+    } catch (error) {
+        messageArea.innerHTML =  "&nbsp;Sign in failed. Please check your email and password.";
+        messageArea.style.color = "red";
+    }
+}
+
 
 // This function loads items from Firestore and puts them on the page
 
@@ -93,16 +95,16 @@ if (signInButton) {
 
 async function loadItems(user) {
     const myMarketplaceQuery = query( 
-    collection(db, "marketplaceItems"),
-    where("sellerId", "!=", user.uid)  // firestore query to grab marketplace items (excl. owned by user)
+        collection(db, "marketplaceItems"),
+        where("sellerId", "!=", user.uid)  // firestore query to grab marketplace items (excl. owned by user)
     );
     const itemsSnapshot = await getDocs(myMarketplaceQuery);
+
     // gather existing user shortlist
     const shortListQuery = query(
-        collection(db, "shortList"),
+        collection(db, "shortlist"),
         where("userId", "==", user.uid)
     );
-
     const shortListSnapshot = await getDocs(shortListQuery); // build a list of IDs to check shortListed 
     const shortlistIds = [];
     shortListSnapshot.forEach(function (docSnapshot) {
