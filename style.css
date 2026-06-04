@@ -1,0 +1,251 @@
+:root {
+        --mqRed: #a6192e;
+        --mqGrey: #dee2e6;
+        --mqBlack: #212529;
+        --greyer: #8a7d72;
+        --background: #f7f7f7;
+        --shortlistAdd: #5a7a5c;
+        --shortlistHover: #3f7a43;
+        --shortlistRemove: #793e3e;
+        --shortlistRemHov: #b23838;
+
+        --cardImgWidth: 256px;
+        --cardImgHeight: 256px;
+        --cardWidth: calc(var(--cardImgWidth)*1.2);
+        --cardHeight: calc(var(--cardImgHeight)*2.5);
+        --cardDescHeight: calc(var(--cardHeight)*0.2);
+        --cardTitleHeight: calc(var(--cardDescHeight)*0.3);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        background-color: var(--background);
+        font-weight: normal;
+        color: var(--mqBlack);
+        min-height: 100vh;
+    }
+
+    
+    .navBar {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: stretch;
+        box-sizing: border-box;
+        background: var(--mqRed);
+        color: white;
+        font-size: 15px;
+        font-weight: 400;
+        text-align: left;
+        height: 61px;
+        padding: 0 1rem;
+        gap: 0;
+        border-bottom: 1px solid var(--mqGrey);  
+    }
+
+    .navWelcome {
+        background-color: white;
+        color: var(--mqBlack);
+        font-size: 1rem;
+        font-weight: 900;
+        letter-spacing: 0.05em;
+        padding: 0.25rem 1rem;
+        margin-right: 1rem;
+        border-right: 1px solid rgba(255,255,255,0.15);
+        text-decoration: none;
+    }
+
+    .navBtns {
+        display: flex;
+        gap: 0;
+        flex: 1;
+    }
+
+    .navBtn {
+        align-items: center;
+        padding: 1rem 0.5rem;
+        color: white;
+        text-decoration: none;
+        font-weight: 400;
+        position: relative;
+    }
+    .navBtn.open, .navBtn:hover { 
+        border-bottom: solid 3px white;
+    }
+
+    .userArea {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        z-index: 1;
+    }
+
+    #userEmail {
+        padding: 0 1rem 0.5rem;
+    }
+
+    .btnSignout {
+        background: white;
+        border: 2px solid var(--mqGrey);
+        color: var(--mqBlack);
+        font-weight: bold;
+        padding: 0.35rem 0.9rem;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btnSignout:hover {
+        background: var(--mqGrey);
+        border-color: var(--greyer);
+    }
+
+    .mainPage {
+        display: flex;
+        padding: 0 3rem;
+    }
+
+    .container {
+        display: block;
+        max-width: none;
+        background-color: white;
+        padding: 1.5rem 1.5rem;
+        margin: 1.5rem 0 3rem;
+    }
+
+    .pageHeader h1 {
+        font-size: 2rem;
+        font-weight: 700;
+        line-height: 1.1;
+        margin-bottom: .75rem;
+    }
+
+    .listingArea {
+        padding: 1rem;
+        border: solid 1px var(--mqGrey);
+        border-radius: 4px;
+    }
+
+    .listingArea h2 {
+        font-size: 1.2rem;
+        font-weight: 700;
+        padding-bottom: 1rem; 
+        margin-bottom: 0rem;
+        align-items: center;
+        border-bottom: solid 3px var(--mqRed);
+    }
+
+    .cardHolder {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(var(--cardWidth), 1fr));
+        justify-content: start;
+        justify-items: center;
+        gap: 1.5rem;
+        padding: 1.5rem;
+        margin: 0 auto;
+        box-sizing: border-box;
+    }
+
+    
+    .itemCard {
+        background: var(--background);
+        box-sizing: border-box;
+        outline: 1px solid var(--mqGrey);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        transition: outline 0.2s;
+        max-width: var(--cardWidth);
+    }
+    .itemCard:hover {
+        outline: 4px solid var(--mqGrey);
+    }
+
+    .cardImgWrap {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: var(--cardImgHeight);
+    }
+    .cardImgWrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    .cardBody {
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        min-height: calc(var(--cardHeight) - var(--cardImgHeight));
+    }
+    .cardTitle {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--mqBlack);
+        min-height: var(--cardTitleHeight);
+        max-height: var(--cardTitleHeight);
+        overflow-y: scroll;
+    }
+    .cardPrice {
+        font-size: 1.25rem;
+        color: var(--shortlistHover);
+        margin-bottom: 0.75rem;
+        border-top: 1px solid var(--mqGrey);
+        padding-top: 0.75rem;
+    }
+    .cardCategory {
+        font-size: 0.75rem;
+        margin-bottom: 0.5rem;
+    }
+    .cardDesc {
+        font-size: 0.9rem;
+        line-height: 1.1rem;
+        flex: 1;
+        margin-bottom: 1rem;
+        min-height: var(--cardDescHeight);
+        max-height: var(--cardDescHeight);
+        overflow-y: scroll;
+    }
+    .cardDate {
+        margin-top: auto;
+        font-size: 0.75rem;
+        color: var(--greyer);
+        border-top: 1px solid var(--mqGrey);
+        padding-top: 0.75rem;
+        margin-bottom: 0.75rem;
+    }
+    .cardShortlist {
+        background: var(--shortlistAdd);
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 3px;
+        text-transform: uppercase;
+        cursor: default;
+        transition: background-color 0.2s;
+    }
+    .cardShortlist:hover    { background-color: var(--shortlistHover)}
+    .cardShortlist:disabled { opacity: 0.75; }
+    .cardShortlist:hover:disabled { 
+        background-color: var(--shortlistAdd);
+        opacity: 0.75; 
+    }
+    .cardShortlistRemove {
+        background: var(--shortlistRemove);
+        border: none;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 3px;
+        text-transform: uppercase;
+        cursor: default;
+        transition: background-color 0.2s;
+    }
+    .cardShortlistRemove:hover    { background-color: var(--shortlistRemHov)}
+    .cardShortlistRemove:disabled { opacity: 0.75; }
+    .cardShortlistRemove:hover:disabled { 
+        background-color: var(--shortlistRemove);
+        opacity: 0.75; 
+    }

@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
     from "https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js";
-    import { getFirestore, collection, getDocs, getDoc, addDoc, deleteDoc, doc, query, where }
+    import { getFirestore, collection, getDocs, getDoc, setDoc, addDoc, deleteDoc, doc, query, where }
     from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
 
@@ -21,7 +21,13 @@ const db = getFirestore(app);
 const emailInput = document.getElementById("emailInput");
 const passwordInput = document.getElementById("passwordInput");
 const signInButton = document.getElementById("signInButton");
+const signOutButton = document.getElementById("signOutButton");
 const messageArea = document.getElementById("messageArea");
+const userEmail = document.getElementById("userEmail");
+
+const itemList = document.getElementById("itemList");
+const myListingsList = document.getElementById("myListingsList");
+const shortlistList = document.getElementById("shortlistList");
 
 // login page logic
 if (signInButton) {
@@ -37,37 +43,37 @@ if (signInButton) {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
-            messageArea.textContent = "Welcome, " + user.email + "! Redirecting...";
+            messageArea.innerHTML = "&nbsp;Welcome, " + user.email + "! Redirecting...";
             messageArea.style.color = "green";
 
             setTimeout(function () {
                 window.location.href = "index.html";
-            }, 2000);
+            }, 1000);
         } catch (error) {
-            messageArea.textContent = "Sign in failed. Please check your email and password.";
+            messageArea.innerHTML =  "&nbsp;Sign in failed. Please check your email and password.";
             messageArea.style.color = "red";
         }
     });
-}
-
-const itemList = document.getElementById("itemList");
-
-if (itemList) {
-    const signOutButton = document.getElementById("signOutButton");
-    const userEmail = document.getElementById("userEmail");
-
-    // onAuthStateChanged checks if someone is signed in
+} else {
     onAuthStateChanged(auth, function (user) {
         if (user) {
             userEmail.textContent = user.email;
-            loadItems(user);
+            if(itemList) {
+                loadItems(user);
+            }
+            else if(myListingsList) {
+                loadMyListings(user);
+            }
+            else if(shortlistList) {
+                loadShortlist(user);
+            }
         } else {
-            // not signed in - send them to login
             window.location.href = "login.html";
         }
     });
-
-    signOutButton.addEventListener("click", function () { signOut(auth);});
+    signOutButton.addEventListener("click", function () {
+        signOut(auth);
+    });
 }
 
 
@@ -92,17 +98,17 @@ async function loadItems(user) {
     );
     const itemsSnapshot = await getDocs(myMarketplaceQuery);
     // gather existing user shortlist
-const shortListQuery = query(
-    collection(db, "shortList"),
-    where("userId", "==", user.uid)
-);
+    const shortListQuery = query(
+        collection(db, "shortList"),
+        where("userId", "==", user.uid)
+    );
 
-const shortListSnapshot = await getDocs(shortListQuery); // build a list of IDs to check shortListed 
-const shortlistIds = [];
-shortListSnapshot.forEach(function (docSnapshot) {
-    shortlistIds.push(docSnapshot.data().itemId);
-});
-
+    const shortListSnapshot = await getDocs(shortListQuery); // build a list of IDs to check shortListed 
+    const shortlistIds = [];
+    shortListSnapshot.forEach(function (docSnapshot) {
+        shortlistIds.push(docSnapshot.data().itemId);
+    });
+    
     itemList.innerHTML = "";
     if (itemsSnapshot.empty) {
         itemList.innerHTML = "<p>No items available to trade or sale. Sorry!</p>";
@@ -111,59 +117,63 @@ shortListSnapshot.forEach(function (docSnapshot) {
     itemsSnapshot.forEach(function (docSnapshot) {
         const item = docSnapshot.data();
         const itemId = docSnapshot.id;
-        const itemImg = docSnapshot.data().imageUrl;
+        const itemImg = item.imageUrl;
         const shortlisted = shortlistIds.includes(itemId);
 
-        //formatting Fiestore date for Frontend
+        //formatting Firestore date for Frontend
         const itemDate = item.createdTime.toDate().toLocaleDateString("en-AU", {
             weekday: "long", year: "numeric", month: "long", day: "numeric"
         });
 
         // build card for marketplace item
         const card = document.createElement("div");
-        card.classList.add("card", "mb-3");
+        card.classList.add("itemCard");
         card.innerHTML = `
-            <div class="row g-0">
-                <div class="col-md-4">
-                    <img src="${itemImg}"
-                        onerror="this.onerror=null; this.src='images/blank.jpg';" 
-                        class="img-fluid rounded-start" 
-                        alt="${item.name}">
-                </div>
-                <div class="col-md-8">
-                    <div class="card-body">
-                        <h5 class="card-title">${item.name}</h5>
-                        <p class="card-text">$${item.price.toFixed(2)}</p>
-                        <p class="card-text">${item.category}</p>
-                        <p class="card-text">${item.description}</p>
-                        <p class="card-text"><small>Listed ${itemDate}</small></p>
-                        <p class="card-text"><small>Seller: ${item.sellerEmail}</small></p>
-                        <button class="btn ${shortlisted ? 'btn-success' : 'btn-primary'} shortlist-btn" data-item-id="${itemId}" data-item-name="${item.name}" ${shortlisted ? 'disabled' : ''}>${shortlisted ? "Shortlisted" : "Shortlist"}</button> 
-                    </div>
-                </div>
+            <div class="cardImgWrap">
+
+                <img src="${itemImg}"
+                    onerror="this.onerror=null; this.src='images/blank.jpg';" 
+                    class="img-fluid rounded-start" 
+                alt="${item.name}">
+
+            </div>
+
+            <div class="cardBody">
+
+                <h3 class="cardTitle">${item.name}</h3>
+
+                <p class="cardPrice">${item.isForTrade? "Trade": "$"+item.price.toFixed(2)}</p>
+                <p class="cardCategory">${item.category}</p>
+                <p class="cardDesc">${item.description}</p>
+
+                <p class="cardDate"><small>Listed ${itemDate}<br>Seller: ${item.sellerEmail}</small></p>
+
+                <button class="cardShortlist" data-item-id="${itemId}" data-item-name="${item.name}" ${shortlisted ? 'disabled' : ''}>
+                    ${shortlisted ? "Shortlisted" : "Shortlist"}
+                </button>
             </div>
         `;
         itemList.appendChild(card);
     });
 
     //shortlist button functionality
-    const shortlistbtns = document.querySelectorAll(".shortlist-btn");
-    shortlistbtns.forEach(function (button) {                                       
+    const shortlistBtns = document.querySelectorAll(".cardShortlist");
+    shortlistBtns.forEach(function (button) {                                       
         button.addEventListener("click", async function () {                        
             const itemId = button.getAttribute("data-item-id");
             const itemName = button.getAttribute("data-item-name");
+            const docID = itemId + "_" + user.uid;
+            const newDoc =  doc(db, "shortlist", docID);
             try {
-                await addDoc(collection(db, "shortlist"), {
-                    userId: user.uid,
+                await setDoc(newDoc, {
                     itemId: itemId,
-                    itemName: itemName
+                    itemName: itemName,
+                    userId: user.uid
                 });
-                button.textContent = "Shortlisted"; //change button to pressed variant
-                button.classList.remove("btn-primary");
-                button.classList.add("btn-success");
+                button.textContent = "Shortlisted";
                 button.disabled = true;
-                loadShortlist(user);
             } catch (error) {
+                console.log(error);
                 alert("Something went wrong. Please try again.");
             }
         });
@@ -174,33 +184,6 @@ shortListSnapshot.forEach(function (docSnapshot) {
 // ============================
 // My Listings page - logic for mylistings.html
 // ============================
-
-const myListingsList = document.getElementById("myListingsList");
-
-if (myListingsList) {
-    // grab the elements we need from mylistings.html
-    const signOutButton = document.getElementById("signOutButton");
-    const userEmail = document.getElementById("userEmail");
-
-    // check if the user is signed in
-    onAuthStateChanged(auth, function (user) {
-        if (user) {
-            // user is signed in - show their email and load their listings
-            userEmail.textContent = user.email;
-            loadMyListings(user);
-        } else {
-            // not signed in - send them to login
-            window.location.href = "login.html";
-        }
-    });
-
-    // when sign out button is clicked, sign the user out
-    signOutButton.addEventListener("click", function () {
-        signOut(auth);
-    });
-}
-
-
 
 // ============================
 // Function: loadMyListings
@@ -229,33 +212,34 @@ async function loadMyListings(user) {
     // otherwise loop through each item and build a card for it
     itemsSnapshot.forEach(function (docSnapshot) {
         const item = docSnapshot.data();
+        const itemId = docSnapshot.id;
         const itemImg = item.imageUrl;
-
-        // format the createdTime into a readable date
         const itemDate = item.createdTime.toDate().toLocaleDateString("en-AU", {
             weekday: "long", year: "numeric", month: "long", day: "numeric"
         });
 
         // build a card element for this item
         const card = document.createElement("div");
-        card.classList.add("card", "mb-3");
+        card.classList.add("itemCard");
         card.innerHTML = `
-            <div class="row g-0">
-                <div class="col-md-4">
-                    <img src="${itemImg}"
-                        onerror="this.onerror=null; this.src='images/blank.jpg';"
-                        class="img-fluid rounded-start"
-                        alt="${item.name}">
-                </div>
-                <div class="col-md-8">
-                    <div class="card-body">
-                        <h5 class="card-title">${item.name}</h5>
-                        <p class="card-text">${item.isForTrade ? "For Trade" : "$" + item.price.toFixed(2)}</p>
-                        <p class="card-text">${item.category}</p>
-                        <p class="card-text">${item.description}</p>
-                        <p class="card-text"><small>Listed ${itemDate}</small></p>
-                    </div>
-                </div>
+            <div class="cardImgWrap">
+
+                <img src="${itemImg}"
+                    onerror="this.onerror=null; this.src='images/blank.jpg';" 
+                    class="img-fluid rounded-start" 
+                alt="${item.name}">
+
+            </div>
+
+            <div class="cardBody">
+
+                <h3 class="cardTitle">${item.name}</h3>
+
+                <p class="cardPrice">${item.isForTrade? "Trade": "$"+item.price.toFixed(2)}</p>
+                <p class="cardCategory">${item.category}</p>
+                <p class="cardDesc">${item.description}</p>
+
+                <p class="cardDate"><small>Listed ${itemDate}</small></p>
             </div>
         `;
 
@@ -264,35 +248,9 @@ async function loadMyListings(user) {
 }
 
 
-
 // ============================
 // Shortlist page - logic for shortlist.html
 // ============================
-
-const shortlistList = document.getElementById("shortlistList");
-
-if (shortlistList) {
-    // grab the elements we need from shortlist.html
-    const signOutButtonSL = document.getElementById("signOutButton");
-    const userEmailSL = document.getElementById("userEmail");
-
-    // check if the user is signed in
-    onAuthStateChanged(auth, function (user) {
-        if (user) {
-            userEmailSL.textContent = user.email;
-            loadShortlist(user);
-        } else {
-            window.location.href = "login.html";
-        }
-    });
-
-    // sign out
-    signOutButtonSL.addEventListener("click", function () {
-        signOut(auth);
-    });
-}
-
-
 
 // ============================
 // Function: loadShortlist
@@ -335,28 +293,34 @@ async function loadShortlist(user) {
 
         const item = itemSnap.data();
         const itemImg = item.imageUrl;
+        const itemDate = item.createdTime.toDate().toLocaleDateString("en-AU", {
+            weekday: "long", year: "numeric", month: "long", day: "numeric"
+        });
 
         // build a card for this item
         const card = document.createElement("div");
-        card.classList.add("card", "mb-3");
+        card.classList.add("itemCard");
         card.innerHTML = `
-            <div class="row g-0">
-                <div class="col-md-4">
-                    <img src="${itemImg}"
-                        onerror="this.onerror=null; this.src='images/blank.jpg';"
-                        class="img-fluid rounded-start"
-                        alt="${item.name}">
-                </div>
-                <div class="col-md-8">
-                    <div class="card-body">
-                        <h5 class="card-title">${item.name}</h5>
-                        <p class="card-text">${item.isForTrade ? "For Trade" : "$" + item.price.toFixed(2)}</p>
-                        <p class="card-text">${item.category}</p>
-                        <p class="card-text">${item.description}</p>
-                        <p class="card-text"><small>Seller: ${item.sellerEmail}</small></p>
-                        <button class="btn btn-danger remove-shortlist-btn" data-shortlist-id="${shortlistDocId}">Remove</button>
-                    </div>
-                </div>
+            <div class="cardImgWrap">
+
+                <img src="${itemImg}"
+                    onerror="this.onerror=null; this.src='images/blank.jpg';" 
+                    class="img-fluid rounded-start" 
+                alt="${item.name}">
+
+            </div>
+
+            <div class="cardBody">
+
+                <h3 class="cardTitle">${item.name}</h3>
+
+                <p class="cardPrice">${item.isForTrade? "Trade": "$"+item.price.toFixed(2)}</p>
+                <p class="cardCategory">${item.category}</p>
+                <p class="cardDesc">${item.description}</p>
+
+                <p class="cardDate"><small>Listed ${itemDate}<br>Seller: ${item.sellerEmail}</small></p>
+
+                <button class="cardShortlistRemove" data-shortlist-id="${shortlistDocId}">Remove</button>
             </div>
         `;
 
@@ -364,7 +328,7 @@ async function loadShortlist(user) {
     }
 
     // wire up all the Remove buttons
-    const removeButtons = document.querySelectorAll(".remove-shortlist-btn");
+    const removeButtons = document.querySelectorAll(".cardShortlistRemove");
     removeButtons.forEach(function (button) {
         button.addEventListener("click", async function () {
             const shortlistDocId = button.getAttribute("data-shortlist-id");
